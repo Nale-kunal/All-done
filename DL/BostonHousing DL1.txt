@@ -1,0 +1,66 @@
+import numpy as np
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+
+
+import keras
+from keras.models  import Sequential
+from keras.layers import Dense
+
+from google.colab import files
+
+uploaded = files.upload()
+boston = pd.read_csv('/content/boston_house_prices.csv')
+
+X = boston[['LSTAT','RM','PTRATIO']]
+y = boston['PRICE']
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=4)
+
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+
+lr_model = LinearRegression()
+lr_model.fit(X_train_scaled, y_train)
+y_pred_lr = lr_model.predict(X_test_scaled)
+
+mse_lr = mean_squared_error(y_test, y_pred_lr)
+mae_lr = mean_absolute_error(y_test, y_pred_lr)
+r2_lr = r2_score(y_test, y_pred_lr)
+
+print("Linear Regression Model Evaluation:")
+print(f"Mean Squared Error: {mse_lr}")
+print(f"Mean Absolute Error: {mae_lr}")
+print(f"R2 Score: {r2_lr}")
+
+
+model = Sequential([
+Dense(128, activation='relu', input_dim=3),
+Dense(64, activation='relu'),
+Dense(32, activation='relu'),
+Dense(16, activation='relu'),
+Dense(1)
+])
+
+
+model.compile(optimizer='adam', loss='mse', metrics=['mae'])
+
+
+y_pred_nn = model.predict(X_test_scaled)
+mse_nn, mae_nn = model.evaluate(X_test_scaled, y_test)
+
+print("\nNeural Network Model Evaluation:")
+print(f"Mean Squared Error: {mse_nn}")
+print(f"Mean Absolute Error: {mae_nn}")
+
+
+new_data = np.array([[0.1,10.0,5.0]])
+
+new_data_scaled = scaler.transform(new_data)
+
+prediction = model.predict(new_data_scaled)
+
+print("\nPredicted House Price:",prediction[0][0])
